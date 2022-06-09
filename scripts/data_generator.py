@@ -34,12 +34,13 @@ def generate_ocr_data(font_file_path, image_path, save_folder):
                 count += 1
 
 
-def generate_alphabet_data(font_file_path, image_path, save_folder):
+def generate_data(font_file_path, image_path, save_folder):
     image = Image.open(image_path)
     count = 0
     chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    # chars = "\'\"\\!@#$%^&*()-_=+,./<>?;:|~`[]{}"
     chars = [char for char in chars]
+    symbols = "\'\"\\!@#$%^&*()-_=+,./<>?;:|~`[]{}"
+    symbols = [sym for sym in symbols]
     font_size = 30
     color = "white"
     spacing = 15
@@ -52,7 +53,7 @@ def generate_alphabet_data(font_file_path, image_path, save_folder):
                 image = Image.open(image_path)
                 location = (x, y)
                 draw = ImageDraw.Draw(image)
-                file_path = os.path.join(save_folder, f"symbol_{count}.jpg")
+                file_path = os.path.join(save_folder, f"{char}_{count}.jpg")
                 draw.text(
                     location, char,
                     fill=color, font=font, spacing=spacing
@@ -61,7 +62,25 @@ def generate_alphabet_data(font_file_path, image_path, save_folder):
 
                 image.save(file_path, "JPEG")
                 count += 1
-        # count = 0
+        count = 0
+    index = 0
+    for sym in symbols:
+        for x in x_values:
+            for y in y_values:
+                image = Image.open(image_path)
+                location = (x, y)
+                draw = ImageDraw.Draw(image)
+                file_path = os.path.join(save_folder, f"symbol_{index}_{count}.jpg")
+                draw.text(
+                    location, sym,
+                    fill=color, font=font, spacing=spacing
+                )  # (x, y) is the top left corner of the text to be drawn
+                # image.show()
+
+                image.save(file_path, "JPEG")
+                count += 1
+        count = 0
+        index += 1
 
 
 if __name__ == "__main__":
@@ -77,4 +96,4 @@ if __name__ == "__main__":
         cwd, "..", "data", "training"
     )
     # generate_ocr_data(pixel_font_path, test_image, save_folder)
-    generate_alphabet_data(pixel_font_path, test_image, save_folder)
+    generate_data(pixel_font_path, test_image, save_folder)
