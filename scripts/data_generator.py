@@ -1,8 +1,10 @@
 import cv2
+import json
 import matplotlib.pyplot as plt
 import os
 
 from PIL import ImageFont, ImageDraw, Image
+from tools import load_from_json, load_training_data, MultiDimensionalArrayEncoder, METADATA_FOLDER, TRAIN_FOLDER
 
 
 def generate_ocr_data(font_file_path, image_path, save_folder):
@@ -83,17 +85,19 @@ def generate_data(font_file_path, image_path, save_folder):
         index += 1
 
 
+def save_to_json():
+    file_name = "pixel_operator_dataset.json"
+    file_path = os.path.join(METADATA_FOLDER, file_name)
+    enc = MultiDimensionalArrayEncoder()
+    pixel_dataset = load_training_data()
+    json_string = enc.encode(pixel_dataset)
+    with open(file_path, "w") as f:
+        json.dump(json_string, f)
+
+
 if __name__ == "__main__":
-    cwd = os.getcwd()
-    pixel_font_path = os.path.join(
-        cwd, "..", "data", "fonts", "pixel_operator", "PixelOperator8.ttf"
-    )
-    image_folder = os.path.join(
-        cwd, "..", "data", "images"
-    )
-    test_image = os.path.join(image_folder, "black_rectangle.jpg")
-    save_folder = os.path.join(
-        cwd, "..", "data", "training"
-    )
-    # generate_ocr_data(pixel_font_path, test_image, save_folder)
-    generate_data(pixel_font_path, test_image, save_folder)
+    # generate_ocr_data(pixel_font_path, test_image, TRAIN_FOLDER)
+    # generate_data(pixel_font_path, test_image, TRAIN_FOLDER)
+    # save_to_json()
+    dataset = load_from_json()
+

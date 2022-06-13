@@ -1,3 +1,4 @@
+import cv2
 import git
 import imgaug
 import itertools
@@ -6,26 +7,19 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import random
 import sklearn.model_selection
 import string
 import tensorflow as tf
 
-from tools import load_training_data
+from tools import load_from_json, load_training_data
 
 
 # assert tf.config.list_physical_devices('GPU'), 'No GPU is available.'
 
-cwd = os.getcwd()
-git_repo = git.Repo(cwd, search_parent_directories=True)
-git_root = git_repo.git.rev_parse("--show-toplevel")
-train_folder = os.path.join(
-    git_root, "data", "training"
-)
-train_folder = train_folder.replace("/", "\\")
-
-dataset = load_training_data(train_folder, 60)
-train_labels = [(filepath, box, word.lower()) for filepath, box, word in dataset]
+dataset = load_from_json()
+train_labels = [(filepath, np.asarray(box), word.lower()) for filepath, box, word in dataset]
 
 recognizer = keras_ocr.recognition.Recognizer()
 recognizer.compile()
@@ -56,7 +50,28 @@ training_gen, validation_gen = [
     for image_generator in [training_image_gen, validation_image_gen]
 ]
 
-for i in range(50):
+for i in range(2):
     image, text = next(training_image_gen)
     print('text:', text)
-    plt.imshow(image)
+    cv2.imshow("frame", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+callbacks = [
+    tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=10, restore_best_weights=False),
+    tf.keras.callbacks.ModelCheckpoint('recognizer_pixel_operator.h5', monitor='val_loss', save_best_only=True),
+    tf.keras.callbacks.CSVLogger('recognizer_pixel_operator.csv')
+]
+recognizer.training_model.fit_generator(
+    generator=training_gen,
+    steps_per_epoch=training_steps,
+    validation_steps=validation_steps,
+    validation_data=validation_gen,
+    callbacks=callbacks,
+    epochs=1000,
+)
+
+image_filepath, _, actual = train_labels[1]
+predicted = recognizer.recognize(image_filepath)
+print(f'Predicted: {predicted}, Actual: {actual}')
+_ = plt.imshow(keras_ocr.tools.read(image_filepath))
