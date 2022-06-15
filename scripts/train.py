@@ -24,7 +24,7 @@ train_labels = [(filepath, np.asarray(box), word.lower()) for filepath, box, wor
 recognizer = keras_ocr.recognition.Recognizer()
 recognizer.compile()
 
-batch_size = 8
+batch_size = 32
 augmenter = imgaug.augmenters.Sequential([
     imgaug.augmenters.GammaContrast(gamma=(0.25, 3.0)),
 ])
@@ -50,13 +50,6 @@ training_gen, validation_gen = [
     for image_generator in [training_image_gen, validation_image_gen]
 ]
 
-for i in range(2):
-    image, text = next(training_image_gen)
-    print('text:', text)
-    cv2.imshow("frame", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
 callbacks = [
     tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=10, restore_best_weights=False),
     tf.keras.callbacks.ModelCheckpoint('recognizer_pixel_operator.h5', monitor='val_loss', save_best_only=True),
@@ -68,7 +61,7 @@ recognizer.training_model.fit_generator(
     validation_steps=validation_steps,
     validation_data=validation_gen,
     callbacks=callbacks,
-    epochs=1000,
+    epochs=50,
 )
 
 image_filepath, _, actual = train_labels[1]
