@@ -37,13 +37,15 @@ def hinted_tuple_hook(obj):
         return obj
 
 
-def load_from_json():
+def load_from_json(num_samples=None):
     file_name = "pixel_operator_dataset.json"
     file_path = os.path.join(METADATA_FOLDER, file_name)
     with open(file_path) as f:
         json_string = json.load(f)
     dataset = json.loads(json_string, object_hook=hinted_tuple_hook)
-    return dataset
+    if num_samples is None:
+        num_samples = len(dataset)
+    return random.sample(dataset, num_samples)
 
 
 def load_training_data(num_files=None):
@@ -99,14 +101,14 @@ def _get_box(image_path):
     white_cols = []
     for row in range(gray.shape[0]):
         for col in range(gray.shape[1]):
-            if gray[row][col] > 100:
+            if gray[row][col] > 10:
                 white_rows.append(row)
                 white_cols.append(col)
 
-    min_row = min(white_rows)
-    min_col = min(white_cols)
-    max_row = max(white_rows)
-    max_col = max(white_cols)
+    min_row = min(white_rows) - 5
+    min_col = min(white_cols) - 5
+    max_row = max(white_rows) + 5
+    max_col = max(white_cols) + 5
 
     return [
         [min_row, min_col],
