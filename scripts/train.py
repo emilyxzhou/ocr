@@ -13,7 +13,7 @@ import sklearn.model_selection
 import string
 import tensorflow as tf
 
-from tools import load_from_json, load_training_data
+from tools import load_from_json, show_cropped, TRAIN_FOLDER
 
 
 # assert tf.config.list_physical_devices('GPU'), 'No GPU is available.'
@@ -24,10 +24,7 @@ train_labels = [(filepath, np.asarray(box), word.lower()) for filepath, box, wor
 recognizer = keras_ocr.recognition.Recognizer()
 recognizer.compile()
 
-batch_size = 32
-augmenter = imgaug.augmenters.Sequential([
-    imgaug.augmenters.GammaContrast(gamma=(0.25, 3.0)),
-])
+batch_size = 16
 
 train_labels, validation_labels = sklearn.model_selection.train_test_split(train_labels, test_size=0.2, random_state=42)
 (training_image_gen, training_steps), (validation_image_gen, validation_steps) = [
@@ -36,11 +33,10 @@ train_labels, validation_labels = sklearn.model_selection.train_test_split(train
             labels=labels,
             height=recognizer.model.input_shape[1],
             width=recognizer.model.input_shape[2],
-            alphabet=recognizer.alphabet,
-            augmenter=augmenter
+            alphabet=recognizer.alphabet
         ),
         len(labels) // batch_size
-    ) for labels, augmenter in [(train_labels, augmenter), (validation_labels, None)]
+    ) for labels in [train_labels, validation_labels]
 ]
 training_gen, validation_gen = [
     recognizer.get_batch_generator(
@@ -49,6 +45,17 @@ training_gen, validation_gen = [
     )
     for image_generator in [training_image_gen, validation_image_gen]
 ]
+
+# for i in range(10):
+#     show_cropped(os.path.join(TRAIN_FOLDER, train_labels[i][0]))
+#     image, text = next(training_image_gen)
+#     print(image.shape)
+    # image = cv2.imread(os.path.join(TRAIN_FOLDER, train_labels[i][0]))
+    # print(image.shape)
+    # print('text:', text)
+    # cv2.imshow("frame", image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 callbacks = [
     tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=10, restore_best_weights=False),
@@ -61,7 +68,7 @@ recognizer.training_model.fit_generator(
     validation_steps=validation_steps,
     validation_data=validation_gen,
     callbacks=callbacks,
-    epochs=50,
+    epochs=10,
 )
 
 image_filepath, _, actual = train_labels[1]
