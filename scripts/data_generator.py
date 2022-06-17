@@ -1,4 +1,5 @@
 import cv2
+import git
 import json
 import matplotlib.pyplot as plt
 import os
@@ -41,9 +42,9 @@ def generate_data(font_file_path, image_path, save_folder):
     count = 0
     chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     chars = [char for char in chars]
-    symbols = "\'\"\\!@#$%^&*()-_=+,./<>?;:|~`[]{}"
-    symbols = [sym for sym in symbols]
-    font_size = 30
+    # symbols = "\'\"\\!@#$%^&*()-_=+,./<>?;:|~`[]{}"
+    # symbols = [sym for sym in symbols]
+    font_size = 20
     color = "white"
     spacing = 15
     font = ImageFont.truetype(font_file_path, font_size)
@@ -65,24 +66,24 @@ def generate_data(font_file_path, image_path, save_folder):
                 image.save(file_path, "JPEG")
                 count += 1
         count = 0
-    index = 0
-    for sym in symbols:
-        for x in x_values:
-            for y in y_values:
-                image = Image.open(image_path)
-                location = (x, y)
-                draw = ImageDraw.Draw(image)
-                file_path = os.path.join(save_folder, f"symbol_{index}_{count}.jpg")
-                draw.text(
-                    location, sym,
-                    fill=color, font=font, spacing=spacing
-                )  # (x, y) is the top left corner of the text to be drawn
-                # image.show()
-
-                image.save(file_path, "JPEG")
-                count += 1
-        count = 0
-        index += 1
+    # index = 0
+    # for sym in symbols:
+    #     for x in x_values:
+    #         for y in y_values:
+    #             image = Image.open(image_path)
+    #             location = (x, y)
+    #             draw = ImageDraw.Draw(image)
+    #             file_path = os.path.join(save_folder, f"symbol_{index}_{count}.jpg")
+    #             draw.text(
+    #                 location, sym,
+    #                 fill=color, font=font, spacing=spacing
+    #             )  # (x, y) is the top left corner of the text to be drawn
+    #             # image.show()
+    #
+    #             image.save(file_path, "JPEG")
+    #             count += 1
+    #     count = 0
+    #     index += 1
 
 
 def save_to_json():
@@ -96,8 +97,14 @@ def save_to_json():
 
 
 if __name__ == "__main__":
-    # generate_ocr_data(pixel_font_path, test_image, TRAIN_FOLDER)
-    # generate_data(pixel_font_path, test_image, TRAIN_FOLDER)
-    # save_to_json()
-    dataset = load_from_json()
-
+    cwd = os.getcwd()
+    _git_repo = git.Repo(cwd, search_parent_directories=True)
+    _git_root = _git_repo.git.rev_parse("--show-toplevel")
+    _data_folder = os.path.join(
+        _git_root, "data"
+    )
+    pixel_font_path = os.path.join(_data_folder, "fonts", "pixel_operator", "PixelOperatorMono.ttf")
+    base_image = os.path.join(_data_folder, "images", "black_rectangle.jpg")
+    # generate_data(pixel_font_path, base_image, TRAIN_FOLDER)
+    save_to_json()
+    # dataset = load_from_json()
