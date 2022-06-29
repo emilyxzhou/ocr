@@ -1,6 +1,6 @@
 import cv2
 import git
-import json
+import numpy as np
 import os
 import random
 
@@ -12,44 +12,13 @@ _data_folder = os.path.join(
 )
 DATA_FOLDER = _data_folder.replace("/", "\\")
 TRAIN_FOLDER = os.path.join(DATA_FOLDER, "training")
+VALIDATION_FOLDER = os.path.join(DATA_FOLDER, "validation")
 METADATA_FOLDER = os.path.join(DATA_FOLDER, "metadata")
+CHECKPOINTS_FOLDER = os.path.join(DATA_FOLDER, "checkpoints")
+CLASSES = "0123456789ABCDEF"
 
 
-class MultiDimensionalArrayEncoder(json.JSONEncoder):
-    def encode(self, obj):
-        def hint_tuples(item):
-            if isinstance(item, tuple):
-                return {'__tuple__': True, 'items': item}
-            if isinstance(item, list):
-                return [hint_tuples(e) for e in item]
-            if isinstance(item, dict):
-                return {key: hint_tuples(value) for key, value in item.items()}
-            else:
-                return item
-
-        return super(MultiDimensionalArrayEncoder, self).encode(hint_tuples(obj))
-
-
-def hinted_tuple_hook(obj):
-    if '__tuple__' in obj:
-        return tuple(obj['items'])
-    else:
-        return obj
-
-
-def load_from_json(num_samples=None):
-    file_name = "pixel_operator_dataset.json"
-    file_path = os.path.join(METADATA_FOLDER, file_name)
-    with open(file_path) as f:
-        json_string = json.load(f)
-    dataset = json.loads(json_string, object_hook=hinted_tuple_hook)
-    if num_samples is None:
-        num_samples = len(dataset)
-    return random.sample(dataset, num_samples)
-
-
-def load_training_data(num_files=None):
-    # TODO: add train/test split option
+def load_training_data(num_files=None, grayscale=True):
     image_paths = [
         f for f in os.listdir(TRAIN_FOLDER)
     ]
@@ -59,23 +28,26 @@ def load_training_data(num_files=None):
         num_files = len(image_paths)
 
     indices = random.sample(range(0, len(image_paths)), num_files)
+    indices.sort()
     image_paths = [image_paths[i] for i in indices]
-    boxes, labels = _read_labels(TRAIN_FOLDER, image_paths)
+    labels = _read_labels(image_paths)
     full_image_paths = [
         os.path.join(TRAIN_FOLDER, f) for f in image_paths
     ]
-    return list(zip(full_image_paths, boxes, labels))
+    if grayscale:
+        images = [cv2.imread(path, cv2.IMREAD_UNCHANGED) for path in full_image_paths]
+    else:
+        images = [cv2.imread(path) for path in full_image_paths]
+    final_images = np.array([np.reshape(image, (28, 28, 1)) for image in images])
+    return final_images, labels
 
 
-def _read_labels(train_folder, image_paths):
+def _read_labels(image_paths):
     print("Reading labels ...")
     count = 0
-    total = len(image_paths)
-    # 231 images per character
-    symbols = "\'\"\\!@#$%^&*()-_=+,./<>?;:|~`[]{}"
+    symbols = "\"\"\\!@#$%^&*()-_=+,./<>?;:|~`[]{}"
     symbols = [sym for sym in symbols]
     labels = []
-    boxes = []
 
     for f in image_paths:
         file_info = f.split("_")
@@ -83,15 +55,12 @@ def _read_labels(train_folder, image_paths):
             symbol_index = int(file_info[1])
             labels.append(symbols[symbol_index])
         else:
-            char_info = file_info[0].split(".")
-            labels.append(char_info[0])
-        boxes.append(
-            _get_box(os.path.join(train_folder, f))
-        )
-        print(f"Image {count}/{total}")
+            char = file_info[0].split(".")[0]
+            labels.append(get_class_labels(char))
+        # print(f"Image {count}/{total}")
         count += 1
 
-    return boxes, labels
+    return np.array(labels)
 
 
 def _get_box(image_path):
@@ -118,6 +87,34 @@ def _get_box(image_path):
     ]
 
 
+# scale pixels
+def scale_pixels(train):
+    # convert from integers to floats
+    train_norm = train.astype("float32")
+    # normalize to range 0-1
+    train_norm = train_norm / 255.0
+    # return normalized images
+    return train_norm
+
+
+def get_class_labels(char):
+    try:
+        return CLASSES.index(char)
+    except Exception:
+        print("Invalid character")
+
+
+def get_cropped_size(image_path):
+    boxes = _get_box(image_path)
+    min_row = boxes[0][0]
+    min_col = boxes[0][1]
+    max_row = boxes[2][0]
+    max_col = boxes[2][1]
+    width = max_col - min_col
+    height = max_row - min_row
+    return width, height
+
+
 def show_cropped(image_path):
     boxes = _get_box(image_path)
     min_row = boxes[0][0]
@@ -128,4 +125,3 @@ def show_cropped(image_path):
     cv2.imshow("Frame", image[min_row:max_row, min_col:max_col])
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
