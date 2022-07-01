@@ -1,4 +1,3 @@
-import keras
 from keras.layers import Conv2D, Dense, Flatten, MaxPooling2D
 from keras.models import Sequential
 from keras.optimizers import SGD

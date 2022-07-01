@@ -1,5 +1,4 @@
 import cv2
-from keras.callbacks import ModelCheckpoint
 from keras.utils import to_categorical
 import numpy as np
 import os
@@ -8,7 +7,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from sklearn.model_selection import train_test_split
 
 from models import cnn
-from tools import load_training_data, scale_pixels, CLASSES
+from tools import load_training_data, scale_pixels, Constants
 
 BATCH_SIZE = 16
 EPOCHS = 50
@@ -29,8 +28,8 @@ for i in range(0, 10):
     img = X_train[i, :, :]
     test_input = np.reshape(img, (1, 28, 28, 1))
     prediction = model.predict(test_input)
-    prediction = CLASSES[np.argmax(prediction)]
-    actual = CLASSES[np.argmax(y_train[i])]
+    prediction = Constants.CLASSES[np.argmax(prediction)]
+    actual = Constants.CLASSES[np.argmax(y_train[i])]
     print(f"Prediction: {prediction}; actual: {actual}")
     cv2.imshow("char", img)
     cv2.waitKey(0)
