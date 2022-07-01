@@ -8,9 +8,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from sklearn.model_selection import train_test_split
 
 from models import cnn
-from tools import load_training_data, scale_pixels, CHECKPOINTS_FOLDER, CLASSES
+from tools import load_training_data, scale_pixels, Constants
 
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 EPOCHS = 50
 
 
@@ -30,7 +30,7 @@ X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5)
 # create model
 model = cnn()
 # set up checkpoints
-model_path = os.path.join(CHECKPOINTS_FOLDER, "weights-{epoch:02d}-{val_accuracy:.2f}.hdf5")
+model_path = os.path.join(Constants.CHECKPOINTS_FOLDER, "weights-{epoch:02d}-{val_accuracy:.2f}.hdf5")
 checkpoint = ModelCheckpoint(model_path, monitor="val_accuracy", verbose=1, save_best_only=True, mode="max")
 callbacks_list = [checkpoint]
 
@@ -48,8 +48,8 @@ for i in range(0, 7):
     img = X_test[i, :, :]
     test_input = np.reshape(img, (1, 28, 28, 1))
     prediction = model.predict(test_input)
-    prediction = CLASSES[np.argmax(prediction)]
-    actual = CLASSES[np.argmax(y_test[i])]
+    prediction = Constants.CLASSES[np.argmax(prediction)]
+    actual = Constants.CLASSES[np.argmax(y_test[i])]
     print(f"Prediction: {prediction}; actual: {actual}")
     cv2.imshow("char", img)
     cv2.waitKey(0)
