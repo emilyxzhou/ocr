@@ -10,17 +10,21 @@ _git_root = _git_repo.git.rev_parse("--show-toplevel")
 _data_folder = os.path.join(
     _git_root, "data"
 )
-DATA_FOLDER = _data_folder.replace("/", "\\")
-TRAIN_FOLDER = os.path.join(DATA_FOLDER, "training")
-VALIDATION_FOLDER = os.path.join(DATA_FOLDER, "validation")
-METADATA_FOLDER = os.path.join(DATA_FOLDER, "metadata")
-CHECKPOINTS_FOLDER = os.path.join(DATA_FOLDER, "checkpoints")
-CLASSES = "0123456789ABCDEF"
+
+
+class Constants:
+    DATA_FOLDER = _data_folder.replace("/", "\\")
+    TRAIN_FOLDER = os.path.join(DATA_FOLDER, "training")
+    VALIDATION_FOLDER = os.path.join(DATA_FOLDER, "validation")
+    METADATA_FOLDER = os.path.join(DATA_FOLDER, "metadata")
+    CHECKPOINTS_FOLDER = os.path.join(DATA_FOLDER, "checkpoints")
+    CLASSES = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    IMAGE_SIZE = 28
 
 
 def load_training_data(num_files=None, grayscale=True):
     image_paths = [
-        f for f in os.listdir(TRAIN_FOLDER)
+        f for f in os.listdir(Constants.TRAIN_FOLDER)
     ]
 
     if num_files is None:
@@ -32,7 +36,7 @@ def load_training_data(num_files=None, grayscale=True):
     image_paths = [image_paths[i] for i in indices]
     labels = _read_labels(image_paths)
     full_image_paths = [
-        os.path.join(TRAIN_FOLDER, f) for f in image_paths
+        os.path.join(Constants.TRAIN_FOLDER, f) for f in image_paths
     ]
     if grayscale:
         images = [cv2.imread(path, cv2.IMREAD_UNCHANGED) for path in full_image_paths]
@@ -99,7 +103,7 @@ def scale_pixels(train):
 
 def get_class_labels(char):
     try:
-        return CLASSES.index(char)
+        return Constants.CLASSES.index(char)
     except Exception:
         print("Invalid character")
 
