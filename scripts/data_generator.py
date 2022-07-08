@@ -8,36 +8,38 @@ import PIL
 import random
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from tools import get_cropped_size, load_training_data, Constants
+from tools import Constants
 
 
-def generate_ocr_data(font_file_path, image_path, save_folder):
+def generate_ocr_data(image_path, save_folder, fonts):
     count = 0
     spacing = 10
     font_sizes = [28]
     texts = [
-        "((NEWHAVEN DISPLAY))\n4x20 CHARACTER OLEDS\nSLIM DESIGN ONLY 5MM\nOLED COLOR: <WHITE>",
-        "ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\n0123456789"
+        "NEWHAVEN DISPLAY\n4x20 CHARACTER OLEDS\nSLIM DESIGN ONLY 5MM\nOLED COLOR WHITE",
+        "ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\n0123456789",
+        "ABCDEF\n01234\n56789",
+        "A B C D E F\n0 1 2 3 4\n5 6 7 8 9"
     ]
-    # fill: font
     fill = ["white"]
-    for font_size in font_sizes:
-        for color in fill:
-            for text in texts:
-                image = Image.open(image_path)
-                draw = ImageDraw.Draw(image)
-                x = 15
-                y = 15
-                font = ImageFont.truetype(font_file_path, font_size)
-                draw.text(
-                    (x, y), text,
-                    fill=color, font=font, spacing=spacing
-                )  # (x, y) is the top left corner of the text to be drawn
-                image.show()
+    for text in texts:
+        for font_path in fonts:
+            for font_size in font_sizes:
+                for color in fill:
+                    image = Image.open(image_path)
+                    draw = ImageDraw.Draw(image)
+                    x = 15
+                    y = 15
+                    font = ImageFont.truetype(font_path, font_size)
+                    draw.text(
+                        (x, y), text,
+                        fill=color, font=font, spacing=spacing
+                    )  # (x, y) is the top left corner of the text to be drawn
+                    # image.show()
 
-                file_path = os.path.join(save_folder, f"train_{count}.jpg")
-                image.save(file_path, "JPEG")
-                count += 1
+                    file_path = os.path.join(save_folder, f"train_{count}.jpg")
+                    image.save(file_path, "JPEG")
+                    count += 1
 
 
 def generate_training_data(image_path, save_folder, fonts):
@@ -46,8 +48,8 @@ def generate_training_data(image_path, save_folder, fonts):
     count = 0
     chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     chars = [char for char in chars]
-    font_sizes = [18, 19, 20, 21, 22]
-    angles = [-30, -20, -10, 0, 10, 20, 30]
+    font_sizes = list(range(16, 22))
+    angles = [-15, -10, -5, 0, 5, 10, 15]
     color = "white"
     for char in chars:
         for font_path in fonts:
@@ -86,8 +88,9 @@ if __name__ == "__main__":
         os.path.join(_data_folder, "fonts", "pixel_operator", "PixelOperatorSC.ttf"),
     ]
     base_image = os.path.join(_data_folder, "images", "base_image.jpg")
-    # generate_ocr_data(pixel_font_path, base_image, _data_folder)
-    generate_training_data(base_image, Constants.TRAIN_FOLDER, pixel_font_paths)
+    black_rectangle = os.path.join(_data_folder, "images", "black_rectangle.jpg")
+    generate_ocr_data(black_rectangle, _data_folder, pixel_font_paths)
+    # generate_training_data(base_image, Constants.TRAIN_FOLDER, pixel_font_paths)
     # generate_validation_data(pixel_font_path, base_image, VALIDATION_FOLDER)
     # save_to_json()
     # dataset = load_from_json()
