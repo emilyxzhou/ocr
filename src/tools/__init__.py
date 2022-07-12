@@ -13,13 +13,21 @@ _data_folder = os.path.join(
 
 
 class Constants:
-    DATA_FOLDER = _data_folder.replace("/", "\\")
+    # DATA_FOLDER = _data_folder.replace("/", "\\")
+    DATA_FOLDER = _data_folder
     TRAIN_FOLDER = os.path.join(DATA_FOLDER, "training")
     VALIDATION_FOLDER = os.path.join(DATA_FOLDER, "validation")
     METADATA_FOLDER = os.path.join(DATA_FOLDER, "metadata")
     CHECKPOINTS_FOLDER = os.path.join(DATA_FOLDER, "checkpoints")
     CLASSES = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     IMAGE_SIZE = 28
+    CNN_WEIGHTS_PATH_FULL_H5 = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_cnn_full.h5")
+    CNN_WEIGHTS_PATH_HEX_H5 = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_cnn_hex.h5")
+    MLP_WEIGHTS_PATH_FULL = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_mlp_full.pkl")
+    MLP_WEIGHTS_PATH_HEX = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_mlp_hex.pkl")
+    CNN_WEIGHTS_PATH_FULL_CSV = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_cnn_full.csv")
+    CNN_WEIGHTS_PATH_HEX_CSV = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_cnn_hex.csv")
+    OCR_OUTPUT_FILE = os.path.join(DATA_FOLDER, "ocr_results.txt")
 
 
 def load_training_data(num_files=None, grayscale=True):
@@ -46,6 +54,23 @@ def load_training_data(num_files=None, grayscale=True):
     return final_images, labels
 
 
+def load_hex_training_data(grayscale=True):
+    hex = list("0123456879ABCDEF")
+    image_paths = [
+        f for f in os.listdir(Constants.TRAIN_FOLDER) if f.split("_")[0] in hex
+    ]
+    labels = _read_labels(image_paths)
+    full_image_paths = [
+        os.path.join(Constants.TRAIN_FOLDER, f) for f in image_paths
+    ]
+    if grayscale:
+        images = [cv2.imread(path, cv2.IMREAD_UNCHANGED) for path in full_image_paths]
+    else:
+        images = [cv2.imread(path) for path in full_image_paths]
+    final_images = np.array([np.reshape(image, (28, 28, 1)) for image in images])
+    return final_images, labels
+
+
 def _read_labels(image_paths):
     print("Reading labels ...")
     count = 0
@@ -60,11 +85,18 @@ def _read_labels(image_paths):
             labels.append(symbols[symbol_index])
         else:
             char = file_info[0].split(".")[0]
-            labels.append(get_class_labels(char))
+            labels.append(_get_class_labels(char))
         # print(f"Image {count}/{total}")
         count += 1
 
     return np.array(labels)
+
+
+def _get_class_labels(char):
+    try:
+        return Constants.CLASSES.index(char)
+    except Exception:
+        print("Invalid character")
 
 
 def _get_box(image_path):
@@ -101,11 +133,8 @@ def scale_pixels(train):
     return train_norm
 
 
-def get_class_labels(char):
-    try:
-        return Constants.CLASSES.index(char)
-    except Exception:
-        print("Invalid character")
+def get_class_labels_from_prediction(pred):
+    return Constants.CLASSES[np.argmax(pred)]
 
 
 def get_cropped_size(image_path):
