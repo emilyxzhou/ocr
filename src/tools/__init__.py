@@ -4,17 +4,13 @@ import numpy as np
 import os
 import random
 
+from os.path import abspath, dirname
+
 cwd = os.getcwd()
-_git_repo = git.Repo(cwd, search_parent_directories=True)
-_git_root = _git_repo.git.rev_parse("--show-toplevel")
-_data_folder = os.path.join(
-    _git_root, "data"
-)
 
 
 class Constants:
-    # DATA_FOLDER = _data_folder.replace("/", "\\")
-    DATA_FOLDER = _data_folder
+    DATA_FOLDER = os.path.join(dirname(dirname(dirname(abspath(__file__)))), "data")
     TRAIN_FOLDER = os.path.join(DATA_FOLDER, "training")
     VALIDATION_FOLDER = os.path.join(DATA_FOLDER, "validation")
     METADATA_FOLDER = os.path.join(DATA_FOLDER, "metadata")
