@@ -22,7 +22,7 @@ class Constants:
     MLP_WEIGHTS_PATH_HEX = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_mlp_hex.pkl")
     CNN_WEIGHTS_PATH_FULL_CSV = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_cnn_full.csv")
     CNN_WEIGHTS_PATH_HEX_CSV = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_cnn_hex.csv")
-    OCR_OUTPUT_FILE_CNN = os.path.join(DATA_FOLDER, "ocr_results_cnn.txt")
+    OCR_OUTPUT_FILE_FULL = os.path.join(DATA_FOLDER, "ocr_results_full.txt")
     OCR_OUTPUT_FILE_MLP = os.path.join(DATA_FOLDER, "ocr_results_mlp.txt")
 
 
