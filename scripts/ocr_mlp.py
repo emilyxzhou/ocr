@@ -24,7 +24,7 @@ def test_ocr_mlp():
         prediction = mlp_hex.get_text(image)
         mlp_hex_output += f"Image {i}:\n{prediction}\n"
 
-    with open(Constants.OCR_OUTPUT_FILE, "w") as f:
+    with open(Constants.OCR_OUTPUT_FILE_MLP, "w") as f:
         f.write("EXPECTED TEXT:\n\n")
         f.write("NEWHAVEN DISPLAY\n4x20 CHARACTER OLEDS\nSLIM DESIGN ONLY 5MM\nOLED COLOR WHITE\n\n")
         f.write("ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\n0123456789\n\n")

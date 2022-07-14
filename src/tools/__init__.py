@@ -1,5 +1,4 @@
 import cv2
-import git
 import numpy as np
 import os
 import random
@@ -23,7 +22,8 @@ class Constants:
     MLP_WEIGHTS_PATH_HEX = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_mlp_hex.pkl")
     CNN_WEIGHTS_PATH_FULL_CSV = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_cnn_full.csv")
     CNN_WEIGHTS_PATH_HEX_CSV = os.path.join(DATA_FOLDER, "weights", "recognizer_pixel_operator_cnn_hex.csv")
-    OCR_OUTPUT_FILE = os.path.join(DATA_FOLDER, "ocr_results.txt")
+    OCR_OUTPUT_FILE_CNN = os.path.join(DATA_FOLDER, "ocr_results_cnn.txt")
+    OCR_OUTPUT_FILE_MLP = os.path.join(DATA_FOLDER, "ocr_results_mlp.txt")
 
 
 def load_training_data(num_files=None, grayscale=True):
