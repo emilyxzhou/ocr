@@ -1,7 +1,7 @@
 import cv2
 import os
 
-from ocr_engine import OCREngine, OCRMLP
+from ocr_engine.ocr_full import OCREngine
 from tools import Constants
 
 
