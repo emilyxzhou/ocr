@@ -108,7 +108,7 @@ def train_full():
 
 
 if __name__ == "__main__":
-    print("Training on hex dataset ...")
-    train_hex()
     print("Training on full dataset ...")
     train_full()
+    print("Training on hex dataset ...")
+    train_hex()

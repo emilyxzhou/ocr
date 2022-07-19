@@ -1,4 +1,5 @@
 import cv2
+import datetime
 from keras.utils import to_categorical
 import numpy as np
 import os
@@ -101,3 +102,16 @@ with open(results_full_path, "w") as f:
 with open(results_hex_path, "w") as f:
     for file_name in incorrect_paths_hex:
         f.write(f"{file_name}\n")
+
+
+image = cv2.cvtColor(images_hex[0], cv2.COLOR_BGR2GRAY)
+test_input = np.reshape(image, (1, 28, 28, 1))
+start_time = datetime.datetime.now()
+pred = model.predict(test_input)
+end_time = datetime.datetime.now()
+print(f"Time it takes for full model to make one prediction: {end_time-start_time}")
+
+start_time = datetime.datetime.now()
+pred = model_hex.predict(test_input)
+end_time = datetime.datetime.now()
+print(f"Time it takes for hex model to make one prediction: {end_time-start_time}")
