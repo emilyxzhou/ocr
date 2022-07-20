@@ -27,7 +27,8 @@ class OCRMLP:
         # Keeps correct scaling and pads to 28x28 with black pixels if necessary.
         for line in lines:
             for char in line:
-                # print(F"Shape before resizing: {char.shape}")
+                # The following 5 lines are for testing purposes.
+                # print(f"Shape before resizing: {char.shape}")
                 # cv2.namedWindow("char", cv2.WINDOW_NORMAL)
                 # cv2.resizeWindow("char", 200, 200)
                 # cv2.imshow("char", char)

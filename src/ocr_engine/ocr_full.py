@@ -6,7 +6,7 @@ import pickle
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-from models import cnn
+from models.cnn import cnn
 from tools import get_class_labels_from_prediction, scale_pixels, Constants
 
 
@@ -46,6 +46,7 @@ class OCREngine:
         # Keeps correct scaling and pads to 28x28 with black pixels if necessary.
         for line in lines:
             for char in line:
+                # The following 5 lines are for testing purposes.
                 # print(F"Shape before resizing: {char.shape}")
                 # cv2.namedWindow("char", cv2.WINDOW_NORMAL)
                 # cv2.resizeWindow("char", 200, 200)
