@@ -17,14 +17,14 @@ def test_ocr_full(file_paths=None):
         for i in range(0, 20):
             paths.append(f"train_{i}.jpg")
         file_paths = [os.path.join(
-            os.getcwd(), Constants.DATA_FOLDER, file
+            os.getcwd(), Constants.OCR_TEST_FOLDER, file
         ) for file in paths]
     images = [cv2.imread(path) for path in file_paths]
 
     mlp_full = OCREngine(model="mlp", weights_path=Constants.MLP_WEIGHTS_PATH_FULL, is_hex=False)
     mlp_hex = OCREngine(model="mlp", weights_path=Constants.MLP_WEIGHTS_PATH_HEX, is_hex=True)
-    cnn_full = OCREngine(model="cnn", weights_path=Constants.CNN_WEIGHTS_PATH_FULL_H5)
-    cnn_hex = OCREngine(model="cnn", weights_path=Constants.CNN_WEIGHTS_PATH_HEX_H5)
+    cnn_full = OCREngine(model="cnn", weights_path=Constants.CNN_WEIGHTS_PATH_FULL_H5, is_hex=False)
+    cnn_hex = OCREngine(model="cnn", weights_path=Constants.CNN_WEIGHTS_PATH_HEX_H5, is_hex=True)
     mlp_full_output = ""
     mlp_hex_output = ""
     cnn_full_output = ""

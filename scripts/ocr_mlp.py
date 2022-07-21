@@ -17,7 +17,7 @@ def test_ocr_mlp(file_paths=None):
         for i in range(0, 20):
             paths.append(f"train_{i}.jpg")
         file_paths = [os.path.join(
-            os.getcwd(), Constants.DATA_FOLDER, file
+            os.getcwd(), Constants.OCR_TEST_FOLDER, file
         ) for file in paths]
     images = [cv2.imread(path) for path in file_paths]
 

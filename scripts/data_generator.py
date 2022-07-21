@@ -24,10 +24,10 @@ def generate_ocr_data(image_path, save_folder, fonts, texts=None):
             "A B C D E F\n0 1 2 3 4\n5 6 7 8 9"
         ]
     fill = ["white"]
-    for text in texts:
-        for font_path in fonts:
-            for font_size in font_sizes:
-                for color in fill:
+    for font_path in fonts:
+        for font_size in font_sizes:
+            for color in fill:
+                for text in texts:
                     image = Image.open(image_path)
                     draw = ImageDraw.Draw(image)
                     x = 15
