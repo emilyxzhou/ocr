@@ -64,13 +64,15 @@ def train_full():
     # cv2.imshow("frame", X_val[0])
     # cv2.waitKey(0)
 
-    # create model
+    # Create model
     model = cnn(is_hex=False)
-    # set up checkpoints
+
+    # Set up checkpoints
     model_path = os.path.join(Constants.CHECKPOINTS_FOLDER, "weights-{epoch:02d}-{val_accuracy:.2f}.hdf5")
     checkpoint = ModelCheckpoint(model_path, monitor="val_accuracy", verbose=1, save_best_only=True, mode="max")
     callbacks_list = [checkpoint]
 
+    # Start training
     model.fit(
         x=X_train, y=y_train,
         steps_per_epoch=len(X_train) // BATCH_SIZE,

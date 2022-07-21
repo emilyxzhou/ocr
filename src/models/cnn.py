@@ -11,20 +11,20 @@ def cnn(is_hex=False):
     """
     model = Sequential()
     model.add(Conv2D(
-        3,
-        (3, 3),
+        16,
+        (5, 5),
         activation="relu",
         kernel_initializer="he_uniform",
         input_shape=(28, 28, 1)
     ))
     model.add(MaxPooling2D((2, 2)))
-    # model.add(Conv2D(
-    #     32,
-    #     (3, 3),
-    #     activation="relu",
-    #     kernel_initializer="he_uniform"
-    # ))
-    # model.add(MaxPooling2D((2, 2)))
+    model.add(Conv2D(
+        32,
+        (3, 3),
+        activation="relu",
+        kernel_initializer="he_uniform"
+    ))
+    model.add(MaxPooling2D((2, 2)))
     model.add(Flatten())
     model.add(Dense(100, activation="relu", kernel_initializer="he_uniform"))
     if is_hex:
