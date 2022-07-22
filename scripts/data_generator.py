@@ -156,7 +156,7 @@ if __name__ == "__main__":
     black_rectangle = os.path.join(Constants.DATA_FOLDER, "images", "black_rectangle.jpg")
 
     # Generate training data for OCR models
-    # generate_training_data(base_image, Constants.TRAIN_FOLDER, pixel_font_paths)
-    # Generate test data for OCR engine
-    # generate_ocr_data(black_rectangle, Constants.OCR_TEST_FOLDER, pixel_font_paths)
+    generate_training_data(base_image, Constants.TRAIN_FOLDER, pixel_font_paths)
     generate_cropped_training_data(black_rectangle, Constants.TRAIN_FOLDER, pixel_font_paths)
+    # Generate test data for OCR engine
+    generate_ocr_data(black_rectangle, Constants.OCR_TEST_FOLDER, pixel_font_paths)
