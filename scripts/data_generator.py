@@ -1,5 +1,9 @@
+import cv2
 import os
+import math
+import numpy as np
 
+from ocr_engine import OCREngineBase
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from tools import Constants
 
@@ -19,7 +23,7 @@ def generate_ocr_data(image_path, save_folder, fonts, texts=None):
     if texts is None:
         texts = [
             "NEWHAVEN DISPLAY\n4x20 CHARACTER OLEDS\nSLIM DESIGN ONLY 5MM\nOLED COLOR WHITE",
-            "ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\n0123456789",
+            "ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ\n0123456789",
             "ABCDEF\n01234\n56789",
             "A B C D E F\n0 1 2 3 4\n5 6 7 8 9"
         ]
@@ -85,6 +89,59 @@ def generate_training_data(
         count = 0
 
 
+def generate_cropped_training_data(
+        image_path,
+        save_folder,
+        fonts,
+        texts=None
+):
+    ocr_engine = OCREngineBase()
+    spacing = 10
+    font_sizes = [28]
+    if texts is None:
+        texts = [
+            "ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ\n0123456789",
+            "ABCDEF\n01234\n56789",
+            "A B C D E F\n0 1 2 3 4\n5 6 7 8 9"
+        ]
+    fill = ["white"]
+    index = 0
+    for font_path in fonts:
+        for font_size in font_sizes:
+            for color in fill:
+                for text in texts:
+                    chars = list(t for t in text if t != "\n" and t != " ")
+                    image = Image.open(image_path)
+                    draw = ImageDraw.Draw(image)
+                    x = 15
+                    y = 15
+                    font = ImageFont.truetype(font_path, font_size)
+                    draw.text(
+                        (x, y), text,
+                        fill=color, font=font, spacing=spacing
+                    )  # (x, y) is the top left corner of the text to be drawn
+
+                    image = np.asarray(image)
+                    lines = ocr_engine.segment_characters(image)
+
+                    count = 0
+                    for line in lines:
+                        for box in line:
+                            scale = min(Constants.IMAGE_SIZE / max(box.shape), 1)
+                            box = cv2.resize(box, None, fx=scale, fy=scale)
+                            l_r = (math.floor((Constants.IMAGE_SIZE - box.shape[1]) / 2),
+                                   (math.ceil((Constants.IMAGE_SIZE - box.shape[1]) / 2)))
+                            t_b = (math.floor((Constants.IMAGE_SIZE - box.shape[0]) / 2),
+                                   (math.ceil((Constants.IMAGE_SIZE - box.shape[0]) / 2)))
+                            final_image = np.pad(box, (t_b, l_r), mode="constant", constant_values=0)
+                            file_path = os.path.join(save_folder, f"{chars[count]}_cropped_{index}.jpg")
+                            final_image = Image.fromarray(final_image)
+                            with open(file_path, "w") as f:
+                                final_image.save(f, "JPEG")
+                            count += 1
+                    index += 1
+
+
 if __name__ == "__main__":
     # Generate blocks of text to test full OCR system ---------------
     pixel_font_paths = [
@@ -99,6 +156,7 @@ if __name__ == "__main__":
     black_rectangle = os.path.join(Constants.DATA_FOLDER, "images", "black_rectangle.jpg")
 
     # Generate training data for OCR models
-    generate_training_data(base_image, Constants.TRAIN_FOLDER, pixel_font_paths)
+    # generate_training_data(base_image, Constants.TRAIN_FOLDER, pixel_font_paths)
     # Generate test data for OCR engine
-    generate_ocr_data(black_rectangle, Constants.OCR_TEST_FOLDER, pixel_font_paths)
+    # generate_ocr_data(black_rectangle, Constants.OCR_TEST_FOLDER, pixel_font_paths)
+    generate_cropped_training_data(black_rectangle, Constants.TRAIN_FOLDER, pixel_font_paths)
