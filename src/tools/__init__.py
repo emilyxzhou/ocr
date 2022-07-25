@@ -18,6 +18,9 @@ class Constants:
     OCR_TEST_FOLDER = os.path.join(DATA_FOLDER, "ocr_test")
 
     # ML info
+    BATCH_SIZE = 32
+    EPOCHS = 500
+    HIDDEN_LAYER_SIZES = (150, 100, 50)
     CLASSES = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     IMAGE_SIZE = 28
 

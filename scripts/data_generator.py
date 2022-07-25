@@ -95,6 +95,16 @@ def generate_cropped_training_data(
         fonts,
         texts=None
 ):
+    """
+    Generates 28x28x3 JPG images of individual characters by segmenting individual characters
+        from a block of text.
+    Uses the OCREngine's character segmentation algorithm to optimize the OCR model's performance.
+    :param image_path: Path to base image to overlay text.
+    :param save_folder: Folder to save training images to.
+    :param fonts: List of paths to font files in .ttf format.
+    :param texts: List of strings of text to draw on the base image.
+    :return: None
+    """
     ocr_engine = OCREngineBase()
     spacing = 10
     font_sizes = [28]
@@ -126,16 +136,10 @@ def generate_cropped_training_data(
 
                     count = 0
                     for line in lines:
-                        for box in line:
-                            scale = min(Constants.IMAGE_SIZE / max(box.shape), 1)
-                            box = cv2.resize(box, None, fx=scale, fy=scale)
-                            l_r = (math.floor((Constants.IMAGE_SIZE - box.shape[1]) / 2),
-                                   (math.ceil((Constants.IMAGE_SIZE - box.shape[1]) / 2)))
-                            t_b = (math.floor((Constants.IMAGE_SIZE - box.shape[0]) / 2),
-                                   (math.ceil((Constants.IMAGE_SIZE - box.shape[0]) / 2)))
-                            final_image = np.pad(box, (t_b, l_r), mode="constant", constant_values=0)
+                        for char in line:
+                            char = ocr_engine._resize_model_input(char)
                             file_path = os.path.join(save_folder, f"{chars[count]}_cropped_{index}.jpg")
-                            final_image = Image.fromarray(final_image)
+                            final_image = Image.fromarray(char)
                             with open(file_path, "w") as f:
                                 final_image.save(f, "JPEG")
                             count += 1

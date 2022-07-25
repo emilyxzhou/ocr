@@ -1,3 +1,4 @@
+import math
 import pickle
 import os
 
@@ -8,10 +9,6 @@ from sklearn.model_selection import train_test_split
 from models.mlp import mlp
 from tools import load_training_data, load_hex_training_data, scale_pixels, Constants
 
-BATCH_SIZE = 32
-EPOCHS = 500
-HIDDEN_LAYER_SIZES = (150, 100, 50)
-
 
 def train_hex():
     """
@@ -20,14 +17,14 @@ def train_hex():
     # Load training data
     X_train, y_train = load_hex_training_data()
     X_train = scale_pixels(X_train)
-    X_train = X_train.reshape(X_train.shape[0], 784)
+    X_train = X_train.reshape(X_train.shape[0], int(math.pow(Constants.IMAGE_SIZE, 2)))
     X_train, X_test, y_train, y_test = train_test_split(
         X_train, y_train, test_size=0.20, random_state=42
     )
     X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5)
 
     # Create model
-    model = mlp(hidden_layer_sizes=HIDDEN_LAYER_SIZES)
+    model = mlp(hidden_layer_sizes=Constants.HIDDEN_LAYER_SIZES)
 
     # Start training
     print("Training model ...")
@@ -56,14 +53,14 @@ def train_full():
     # Load training data
     X_train, y_train = load_training_data()
     X_train = scale_pixels(X_train)
-    X_train = X_train.reshape(X_train.shape[0], 784)
+    X_train = X_train.reshape(X_train.shape[0], int(math.pow(Constants.IMAGE_SIZE, 2)))
     X_train, X_test, y_train, y_test = train_test_split(
         X_train, y_train, test_size=0.20, random_state=42
     )
     X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5)
 
     # Create model
-    model = mlp(hidden_layer_sizes=HIDDEN_LAYER_SIZES)
+    model = mlp(hidden_layer_sizes=Constants.HIDDEN_LAYER_SIZES)
 
     # Start training
     print("Training model ...")

@@ -21,6 +21,7 @@ def test_ocr_mlp(file_paths=None):
         ) for file in paths]
     images = [cv2.imread(path) for path in file_paths]
 
+    # Set up OCR engines with various models and weights
     mlp_full = OCRMLP(weights_path=Constants.MLP_WEIGHTS_PATH_FULL)
     mlp_hex = OCRMLP(weights_path=Constants.MLP_WEIGHTS_PATH_HEX)
     mlp_full_output = ""

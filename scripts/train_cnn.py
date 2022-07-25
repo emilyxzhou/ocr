@@ -8,9 +8,6 @@ from sklearn.model_selection import train_test_split
 from models.cnn import cnn
 from tools import load_training_data, load_hex_training_data, scale_pixels, Constants
 
-BATCH_SIZE = 32
-EPOCHS = 500
-
 
 def train_hex():
     """
@@ -37,8 +34,8 @@ def train_hex():
     # Start training
     model.fit(
         x=X_train, y=y_train,
-        steps_per_epoch=len(X_train) // BATCH_SIZE,
-        epochs=EPOCHS,
+        steps_per_epoch=len(X_train) // Constants.BATCH_SIZE,
+        epochs=Constants.EPOCHS,
         callbacks=callbacks_list,
         validation_data=(X_val, y_val)
     )
@@ -75,8 +72,8 @@ def train_full():
     # Start training
     model.fit(
         x=X_train, y=y_train,
-        steps_per_epoch=len(X_train) // BATCH_SIZE,
-        epochs=EPOCHS,
+        steps_per_epoch=len(X_train) // Constants.BATCH_SIZE,
+        epochs=Constants.EPOCHS,
         callbacks=callbacks_list,
         validation_data=(X_val, y_val)
     )

@@ -1,4 +1,3 @@
-import cv2
 import math
 import numpy as np
 import os
@@ -39,7 +38,7 @@ class OCREngine(OCREngineBase):
             print(f"Model type {model} not supported, defaulting to CNN.")
 
     def get_text(self, image, verbose=False):
-        lines = self._segment_characters(image)
+        lines = self.segment_characters(image)
         num_chars = sum([len(line) for line in lines])
         if verbose:
             print(f"{len(lines)} lines detected, {num_chars} chars total")
@@ -48,30 +47,15 @@ class OCREngine(OCREngineBase):
         # Keeps correct scaling and pads to 28x28 with black pixels if necessary.
         for line in lines:
             for char in line:
-                # The following 5 lines are for testing purposes.
-                # print(f"Shape before resizing: {char.shape}")
-                # cv2.namedWindow("char", cv2.WINDOW_NORMAL)
-                # cv2.resizeWindow("char", 200, 200)
-                # cv2.imshow("char", char)
-                # cv2.waitKey(0)
-
-                scale = min(Constants.IMAGE_SIZE / max(char.shape), 1)
-                # char = cv2.resize(char, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
-                char = cv2.resize(char, None, fx=scale, fy=scale)
-                l_r = (math.floor((Constants.IMAGE_SIZE - char.shape[1])/2), (math.ceil((Constants.IMAGE_SIZE - char.shape[1])/2)))
-                t_b = (math.floor((Constants.IMAGE_SIZE - char.shape[0])/2), (math.ceil((Constants.IMAGE_SIZE - char.shape[0])/2)))
-                char = np.pad(char, (t_b, l_r), mode="constant", constant_values=0)
+                char = self._resize_model_input(char)
                 char = scale_pixels(char)
-                # print(f"Shape after resizing: {char.shape}")
-                # cv2.imshow("resized", char)
-                # cv2.waitKey(0)
 
                 if self._model_type == "cnn":
-                    input_char = np.reshape(char, (1, 28, 28, 1))
+                    input_char = np.reshape(char, (1, Constants.IMAGE_SIZE, Constants.IMAGE_SIZE, 1))
                     pred = self._model.predict(input_char, verbose=0)
                     predictions.append(get_class_labels_from_prediction(pred))
                 elif self._model_type == "mlp":
-                    input_char = char.reshape(1, 784)
+                    input_char = char.reshape(1, int(math.pow(Constants.IMAGE_SIZE, 2)))
                     pred = self._model.predict(input_char)
                     predictions.append(Constants.CLASSES[pred[0]])
             predictions.append("\n")
