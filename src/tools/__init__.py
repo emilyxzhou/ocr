@@ -34,6 +34,17 @@ class Constants:
     OCR_OUTPUT_FILE_FULL = os.path.join(DATA_FOLDER, "ocr_results_full.txt")
     OCR_OUTPUT_FILE_MLP = os.path.join(DATA_FOLDER, "ocr_results_mlp.txt")
 
+    WEIGHTS_DICT = {
+        "cnn": {
+            "hex": CNN_WEIGHTS_PATH_HEX_H5,
+            "full": CNN_WEIGHTS_PATH_FULL_H5
+        },
+        "mlp": {
+            "hex": MLP_WEIGHTS_PATH_HEX,
+            "full": MLP_WEIGHTS_PATH_FULL
+        }
+    }
+
 
 def load_training_data(num_files=None, grayscale=True):
     """
