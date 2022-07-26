@@ -7,7 +7,9 @@ from tools import scale_pixels, Constants
 
 class OCRMLP(OCREngineBase):
 
-    def __init__(self, weights_path=None):
+    def __init__(self, weights="full", weights_path=None):
+        if weights_path is None:
+            weights_path = Constants.WEIGHTS_DICT["mlp"][weights]
         super().__init__()
         try:
             with open(weights_path, "rb") as f:

@@ -12,21 +12,19 @@ from tools import get_class_labels_from_prediction, scale_pixels, Constants
 
 class OCREngine(OCREngineBase):
 
-    def __init__(self, weights_path=None, model="cnn", is_hex=True):
+    def __init__(self, model="cnn", weights="full", weights_path=None, is_hex=True):
+        if weights_path is None:
+            weights_path = Constants.WEIGHTS_DICT[model][weights]
         super().__init__()
         self._model_type = model
         if model == "cnn":
             self._model = cnn(is_hex=is_hex)
-            if weights_path is None:
-                weights_path = Constants.CNN_WEIGHTS_PATH_HEX_H5
             try:
                 self._model.load_weights(weights_path)
             except Exception:
                 print("Invalid path to pretrained model weights, loading CNN hex weights by default")
                 self._model.load_weights(Constants.CNN_WEIGHTS_PATH_HEX_H5)
         elif model == "mlp":
-            if weights_path is None:
-                weights_path = Constants.MLP_WEIGHTS_PATH_HEX
             try:
                 with open(weights_path, "rb") as f:
                     self._model = pickle.load(f)
