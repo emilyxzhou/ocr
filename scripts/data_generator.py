@@ -1,6 +1,5 @@
 import cv2
 import os
-import math
 import numpy as np
 
 from ocr_engine import OCREngineBase
@@ -23,9 +22,13 @@ def generate_ocr_data(image_path, save_folder, fonts, texts=None):
     if texts is None:
         texts = [
             "NEWHAVEN DISPLAY\n4x20 CHARACTER OLEDS\nSLIM DESIGN ONLY 5MM\nOLED COLOR WHITE",
+            "Newhaven Display\n4x20 Character OLEDs\nSlim Design Only 5MM\nOLED Color White",
             "ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ\n0123456789",
+            "abcdefghi\njklmnopqr\nstuvwxyz\n0123456789",
             "ABCDEF\n01234\n56789",
-            "A B C D E F\n0 1 2 3 4\n5 6 7 8 9"
+            "abcdef\n01234\n56789",
+            "A B C D E F\n0 1 2 3 4\n5 6 7 8 9",
+            "a b c d e f\n0 1 2 3 4\n5 6 7 8 9"
         ]
     fill = ["white"]
     for font_path in fonts:
@@ -63,10 +66,10 @@ def generate_training_data(
     image = Image.open(image_path)
     width, height = image.size
     count = 0
-    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     chars = [char for char in chars]
     font_sizes = list(range(16, 22))
-    angles = [-15, -10, -5, 0, 5, 10, 15]
+    angles = [-12, -10, -8, -5, 0, 5, 8, 10, 12]
     color = "white"
     for char in chars:
         for font_path in fonts:
@@ -75,7 +78,14 @@ def generate_training_data(
                     font = ImageFont.truetype(font_path, font_size)
                     image = Image.open(image_path)
                     draw = ImageDraw.Draw(image)
-                    file_path = os.path.join(save_folder, f"{char}_{count}.jpg")
+                    if not char.isdigit():
+                        if char == char.lower():
+                            prefix = f"{char.lower()}_lower"
+                        else:
+                            prefix = f"{char.lower()}_upper"
+                    else:
+                        prefix = char
+                    file_path = os.path.join(save_folder, f"{prefix}_{count}.jpg")
                     with open(file_path, "w") as f:
                         draw.text(
                             (width // 2, height // 2), char,
@@ -107,12 +117,11 @@ def generate_cropped_training_data(
     """
     ocr_engine = OCREngineBase()
     spacing = 10
-    font_sizes = [28]
+    font_sizes = [24, 26, 28]
     if texts is None:
         texts = [
             "ABCDEFGHI\nJKLMNOPQR\nSTUVWXYZ\n0123456789",
-            "ABCDEF\n01234\n56789",
-            "A B C D E F\n0 1 2 3 4\n5 6 7 8 9"
+            "abcdefghi\njklmnopqr\nstuvwxyz\n0123456789"
         ]
     fill = ["white"]
     index = 0
@@ -135,10 +144,22 @@ def generate_cropped_training_data(
                     lines = ocr_engine.segment_characters(image)
 
                     count = 0
+                    # for line in lines:
+                    #     for char in line:
+                    #         cv2.imshow("char", char)
+                    #         cv2.waitKey(0)
+
                     for line in lines:
                         for char in line:
+                            if not chars[count].isdigit():
+                                if chars[count] == chars[count].lower():
+                                    prefix = f"{chars[count].lower()}_lower"
+                                else:
+                                    prefix = f"{chars[count].lower()}_upper"
+                            else:
+                                prefix = chars[count]
                             char = ocr_engine._resize_model_input(char)
-                            file_path = os.path.join(save_folder, f"{chars[count]}_cropped_{index}.jpg")
+                            file_path = os.path.join(save_folder, f"{prefix}_cropped_{index}.jpg")
                             final_image = Image.fromarray(char)
                             with open(file_path, "w") as f:
                                 final_image.save(f, "JPEG")
@@ -150,17 +171,17 @@ if __name__ == "__main__":
     # Generate blocks of text to test full OCR system ---------------
     pixel_font_paths = [
         os.path.join(Constants.DATA_FOLDER, "fonts", "pixel_operator", "PixelOperator.ttf"),
-        os.path.join(Constants.DATA_FOLDER, "fonts", "pixel_operator", "PixelOperator8.ttf"),
         os.path.join(Constants.DATA_FOLDER, "fonts", "pixel_operator", "PixelOperatorMono.ttf"),
-        os.path.join(Constants.DATA_FOLDER, "fonts", "pixel_operator", "PixelOperatorMono8.ttf"),
-        os.path.join(Constants.DATA_FOLDER, "fonts", "pixel_operator", "PixelOperatorSC.ttf"),
+        os.path.join(Constants.DATA_FOLDER, "fonts", "pixel_operator", "PixelOperator8.ttf"),
+        os.path.join(Constants.DATA_FOLDER, "fonts", "pixel_operator", "PixelOperatorMono8.ttf")
     ]
     # Base image for training data is a 28x28 black square
     base_image = os.path.join(Constants.DATA_FOLDER, "images", "base_image.jpg")
     black_rectangle = os.path.join(Constants.DATA_FOLDER, "images", "black_rectangle.jpg")
 
-    # Generate training data for OCR models
-    generate_training_data(base_image, Constants.TRAIN_FOLDER, pixel_font_paths)
-    generate_cropped_training_data(black_rectangle, Constants.TRAIN_FOLDER, pixel_font_paths)
     # Generate test data for OCR engine
     generate_ocr_data(black_rectangle, Constants.OCR_TEST_FOLDER, pixel_font_paths)
+
+    # Generate training data for OCR models
+    generate_training_data(base_image, Constants.TRAIN_FOLDER, pixel_font_paths)
+    generate_cropped_training_data(black_rectangle, Constants.TRAIN_FOLDER, pixel_font_paths[0:2])

@@ -31,15 +31,25 @@ class OCREngineBase:
             while i < len(line):
                 box1 = line[i]
                 (x, y, w, h) = box1
+                if i > 0 and i < len(line) - 1:
+                    box0 = line[i-1]
+                    box1 = line[i]
+                    box2 = line[i+1]
+                    if self._is_skip_box(box0, box1, box2):
+                        i += 1
+                        continue
+
+                # Compare current box to next box and see if they should be merged into one
                 if i < len(line) - 1:
                     box2 = line[i+1]
                     if self._is_merge_boxes(box1, box2):
                         (x, y, w, h) = self._merge_boxes(box1, box2)
                         i += 1
-                # cv2.rectangle(image, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
                 curr_num = image_gray[y:y + h, x:x + w]
                 _, curr_num = cv2.threshold(curr_num, 220, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
                 chars.append(curr_num)
+                # The following three lines are used for debugging purposes
+                # cv2.rectangle(image, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
                 # cv2.imshow("boxes", image)
                 # cv2.waitKey(0)
                 i += 1
@@ -60,21 +70,32 @@ class OCREngineBase:
         new_line_indices = [0]
         min_y = sorted_y[0][1]
         max_char_height = max([bounds[3] for bounds in sorted_y])
-        for box in contour_boxes:
+        for box in sorted_y:
             if box[3] >= max_char_height / 3:
                 valid_contour_boxes.append(box)
         # Separate bounding boxes into horizontal lines
-        for i in range(len(sorted_y)):
-            if sorted_y[i][1] > min_y + max_char_height:
-                min_y = sorted_y[i][1]
+        for i in range(len(valid_contour_boxes)):
+            if valid_contour_boxes[i][1] > min_y + max_char_height:
+                min_y = valid_contour_boxes[i][1]
                 new_line_indices.append(i)
         # Sort boxes within lines from left to right
-        lines = [sorted_y[
+        lines = [valid_contour_boxes[
                  new_line_indices[i]:new_line_indices[i+1]
                  ] for i in range(len(new_line_indices)-1)]
         lines.append(sorted_y[new_line_indices[-1]:])
         sorted_lines = [sorted(line, key=lambda b: b[0] + b[2]) for line in lines]
         return sorted_lines
+
+    def _is_skip_box(self, box0, box1, box2, threshold=15):
+        """
+        :param box0: Leftmost box of three adjacent boxes in the same line.
+        :param box1: Middle box of three adjacent boxes in the same line.
+        :param box2: Rightmost box of three adjacent boxes in the same line.
+        :param threshold: Maximum number of pixels the middle box can differ from the left and right boxes
+        :return: True if the y-coordinate of the upper left point of the middle box (box1) differs from the
+            left and right boxes by more than the threshold number of pixels.
+        """
+        return abs(box1[1] - box0[1]) > threshold and abs(box2[1] - box1[1]) > threshold
 
     def _is_merge_boxes(self, box1, box2, x_thresh=1, y_thresh=3):
         """

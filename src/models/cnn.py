@@ -28,9 +28,9 @@ def cnn(is_hex=False):
     model.add(Flatten())
     model.add(Dense(100, activation="relu", kernel_initializer="he_uniform"))
     if is_hex:
-        model.add(Dense(16, activation="softmax"))
+        model.add(Dense(22, activation="softmax"))
     else:
-        model.add(Dense(36, activation="softmax"))
+        model.add(Dense(62, activation="softmax"))
     # Compile model
     opt = SGD(learning_rate=0.01, momentum=0.9)
     model.compile(optimizer=opt, loss="categorical_crossentropy", metrics=["accuracy"])
