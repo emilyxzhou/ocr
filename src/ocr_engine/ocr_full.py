@@ -12,7 +12,7 @@ from tools import get_class_labels_from_prediction, scale_pixels, Constants
 
 class OCREngine(OCREngineBase):
 
-    def __init__(self, model="cnn", weights="full", weights_path=None, is_hex=True):
+    def __init__(self, model="cnn", weights="full", weights_path=None, is_hex=False):
         if weights_path is None:
             weights_path = Constants.WEIGHTS_DICT[model][weights]
         super().__init__()
