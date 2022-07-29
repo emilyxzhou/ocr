@@ -18,7 +18,7 @@ def generate_ocr_data(image_path, save_folder, fonts, texts=None):
     """
     count = 0
     spacing = 10
-    font_sizes = [28]
+    font_sizes = [22, 24, 26, 28]
     if texts is None:
         texts = [
             "NEWHAVEN DISPLAY\n4x20 CHARACTER OLEDS\nSLIM DESIGN ONLY 5MM\nOLED COLOR WHITE",
@@ -69,7 +69,7 @@ def generate_training_data(
     chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     chars = [char for char in chars]
     font_sizes = list(range(16, 22))
-    angles = [-12, -10, -8, -5, 0, 5, 8, 10, 12]
+    angles = [-10, -8, -5, 0, 5, 8, 10]
     color = "white"
     for char in chars:
         for font_path in fonts:
@@ -95,6 +95,14 @@ def generate_training_data(
                         image = image.rotate(angle)
 
                         image.save(f, "JPEG")
+                    count += 1
+
+                    # Save dilated version of image
+                    image = np.asarray(image)
+                    file_path = os.path.join(save_folder, f"{prefix}_{count}.jpg")
+                    kernel = np.ones((3, 3), np.uint8)
+                    image = cv2.dilate(image, kernel, iterations=1)
+                    cv2.imwrite(file_path, image)
                     count += 1
         count = 0
 
@@ -163,7 +171,16 @@ def generate_cropped_training_data(
                             final_image = Image.fromarray(char)
                             with open(file_path, "w") as f:
                                 final_image.save(f, "JPEG")
+                            index += 1
+
+                            file_path = os.path.join(save_folder, f"{prefix}_cropped_{index}.jpg")
+                            kernel = np.ones((3, 3), np.uint8)
+                            char = cv2.dilate(char, kernel, iterations=1)
+                            cv2.imshow("dilated", char)
+                            cv2.waitKey(0)
+                            cv2.imwrite(file_path, char)
                             count += 1
+
                     index += 1
 
 

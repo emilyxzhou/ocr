@@ -31,7 +31,7 @@ class OCREngineBase:
             while i < len(line):
                 box1 = line[i]
                 (x, y, w, h) = box1
-                if i > 0 and i < len(line) - 1:
+                if 0 < i < len(line) - 1:
                     box0 = line[i-1]
                     box1 = line[i]
                     box2 = line[i+1]
