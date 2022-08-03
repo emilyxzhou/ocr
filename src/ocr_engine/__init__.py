@@ -49,11 +49,42 @@ class OCREngineBase:
         Segments the input image into individual characters.
         Returns a list of cropped images containing a single character.
         """
+        new_bw = self._get_bw_image(image)
+        sorted_bounding_boxes = self.filter_characters(new_bw)
+        lines = self.get_lines_from_bounding_boxes(image, sorted_bounding_boxes)
+        return lines
+
+    def filter_characters(self, image):
+        """Returns all rectangles found in image."""
+        # Filter out invalid rectangles
+        contours, hierarchy = cv2.findContours(image.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        rectangles = []
+        average_area = np.mean([cv2.contourArea(c) for c in contours])
+        min_area = np.min([cv2.contourArea(c) for c in contours])
+        max_area = np.max([cv2.contourArea(c) for c in contours])
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            contour_area = cv2.contourArea(contour)
+            is_rectangle_valid = contour_area > average_area * 0.6
+            if is_rectangle_valid:
+                rectangles.append((x, y, w, h))
+        # rectangles = remove_contained_rectangles(rectangles)
+        rectangles = self.remove_outlier_rectangles(rectangles)
+        rectangles = self._sort_bounding_boxes(rectangles)
+        return rectangles
+
+    def _get_bw_image(self, image):
+        """
+        Given an image, identifies text and segments the image into foreground and background such that text is white
+        and the rest of the image is black.
+        :param image: Image taken from a camera.
+        :return: Input image with text in white and the rest in black.
+        """
         # Convert image to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # display_image(gray, "initial grayscale")
         _, gray = cv2.threshold(gray, 230, 255, cv2.THRESH_TOZERO)
-        display_image(gray, "zero thresholding")
+        # display_image(gray, "zero thresholding")
 
         _, bw_copy = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         # display_image(bw_copy, "bw copy")
@@ -69,7 +100,7 @@ class OCREngineBase:
 
         # Binarization (Otsu considers two classes of pixels)
         _, bw = cv2.threshold(grad, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        display_image(bw, "otsu")
+        # display_image(bw, "otsu")
 
         # Closing operation
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 1))
@@ -110,29 +141,8 @@ class OCREngineBase:
                 else:
                     new_bw[y:y + h, x:x + w] = np.copy(wb_copy[y:y + h, x:x + w])
 
-        display_image(new_bw, "extracted text")
-        sorted_bounding_boxes = self.filter_characters(new_bw)
-        lines = self.get_lines_from_bounding_boxes(image, sorted_bounding_boxes)
-        return lines
-
-    def filter_characters(self, image):
-        """Returns all rectangles found in image."""
-        # Filter out invalid rectangles
-        contours, hierarchy = cv2.findContours(image.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        rectangles = []
-        average_area = np.mean([cv2.contourArea(c) for c in contours])
-        min_area = np.min([cv2.contourArea(c) for c in contours])
-        max_area = np.max([cv2.contourArea(c) for c in contours])
-        for contour in contours:
-            x, y, w, h = cv2.boundingRect(contour)
-            contour_area = cv2.contourArea(contour)
-            is_rectangle_valid = contour_area > average_area * 0.6
-            if is_rectangle_valid:
-                rectangles.append((x, y, w, h))
-        # rectangles = remove_contained_rectangles(rectangles)
-        rectangles = self.remove_outlier_rectangles(rectangles)
-        rectangles = self._sort_bounding_boxes(rectangles)
-        return rectangles
+        # display_image(new_bw, "extracted text")
+        return new_bw
 
     def remove_contained_rectangles(self, image, rectangles):
         valid_rectangles = []
