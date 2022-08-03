@@ -193,3 +193,14 @@ def get_label_from_file(file_path):
         if char_type == "upper":
             char = char.upper()
     return char
+
+
+def display_image(image, name="image"):
+    cv2.namedWindow(name, cv2.WINDOW_NORMAL)
+    width = 700
+    # Scale image to window width
+    height = int(width / image.shape[1] * image.shape[0])
+    cv2.resizeWindow(name, width, height)
+    cv2.imshow(name, image)
+    cv2.waitKey(0)
+    cv2.destroyWindow(name)
