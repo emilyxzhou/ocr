@@ -203,7 +203,6 @@ class OCREngineBase:
                         (x, y, w, h) = self._merge_boxes(box1, box2)
                         i += 1
                 curr_num = image[y:y + h, x:x + w]
-                _, curr_num = cv2.threshold(curr_num, 220, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
                 chars.append(curr_num)
                 # The following three lines are used for debugging purposes
                 # cv2.rectangle(image, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
@@ -238,7 +237,6 @@ class OCREngineBase:
                  ] for i in range(len(new_line_indices)-1)]
         lines.append(sorted_y[new_line_indices[-1]:])
         sorted_lines = [sorted(line, key=lambda b: b[0] + b[2]) for line in lines]
-        print(sorted_lines)
         return sorted_lines
 
     def _is_skip_box(self, box0, box1, box2, threshold=15):
