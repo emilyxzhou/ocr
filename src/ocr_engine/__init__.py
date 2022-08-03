@@ -29,7 +29,6 @@ class OCREngineBase:
         """
         if type(image) is not np.ndarray:
             raise TypeError(f"Input image is not a numpy array.")
-        lines = []
         image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         _, th = cv2.threshold(image_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         # temp = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
@@ -39,35 +38,7 @@ class OCREngineBase:
         contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rectangles = [cv2.boundingRect(c) for c in contours]
         sorted_bounding_boxes = self._sort_bounding_boxes(rectangles)
-        for line in sorted_bounding_boxes:
-            chars = []
-            i = 0
-            while i < len(line):
-                box1 = line[i]
-                (x, y, w, h) = box1
-                if 0 < i < len(line) - 1:
-                    box0 = line[i-1]
-                    box1 = line[i]
-                    box2 = line[i+1]
-                    if self._is_skip_box(box0, box1, box2):
-                        i += 1
-                        continue
-
-                # Compare current box to next box and see if they should be merged into one
-                if i < len(line) - 1:
-                    box2 = line[i+1]
-                    if self._is_merge_boxes(box1, box2):
-                        (x, y, w, h) = self._merge_boxes(box1, box2)
-                        i += 1
-                curr_num = image_gray[y:y + h, x:x + w]
-                _, curr_num = cv2.threshold(curr_num, 220, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                chars.append(curr_num)
-                # The following three lines are used for debugging purposes
-                # cv2.rectangle(image, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
-                # cv2.imshow("boxes", image)
-                # cv2.waitKey(0)
-                i += 1
-            lines.append(chars)
+        lines = self.get_lines_from_bounding_boxes(image_gray, sorted_bounding_boxes)
         # cv2.imshow("boxes", image)
         # cv2.waitKey(0)
         return lines
@@ -140,7 +111,9 @@ class OCREngineBase:
                     new_bw[y:y + h, x:x + w] = np.copy(wb_copy[y:y + h, x:x + w])
 
         display_image(new_bw, "extracted text")
-        return new_bw
+        sorted_bounding_boxes = self.filter_characters(new_bw)
+        lines = self.get_lines_from_bounding_boxes(image, sorted_bounding_boxes)
+        return lines
 
     def filter_characters(self, image):
         """Returns all rectangles found in image."""
@@ -209,6 +182,39 @@ class OCREngineBase:
 
         return valid_rectangles
 
+    def get_lines_from_bounding_boxes(self, image, bounding_boxes):
+        lines = []
+        for line in bounding_boxes:
+            chars = []
+            i = 0
+            while i < len(line):
+                box1 = line[i]
+                (x, y, w, h) = box1
+                if 0 < i < len(line) - 1:
+                    box0 = line[i-1]
+                    box1 = line[i]
+                    box2 = line[i+1]
+                    if self._is_skip_box(box0, box1, box2):
+                        i += 1
+                        continue
+
+                # Compare current box to next box and see if they should be merged into one
+                if i < len(line) - 1:
+                    box2 = line[i+1]
+                    if self._is_merge_boxes(box1, box2):
+                        (x, y, w, h) = self._merge_boxes(box1, box2)
+                        i += 1
+                curr_num = image[y:y + h, x:x + w]
+                _, curr_num = cv2.threshold(curr_num, 220, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                chars.append(curr_num)
+                # The following three lines are used for debugging purposes
+                # cv2.rectangle(image, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
+                # cv2.imshow("boxes", image)
+                # cv2.waitKey(0)
+                i += 1
+            lines.append(chars)
+        return lines
+
     def _sort_bounding_boxes(self, rectangles):
         """
         Sorts bounding boxes of contours top to bottom, left to right.
@@ -234,6 +240,7 @@ class OCREngineBase:
                  ] for i in range(len(new_line_indices)-1)]
         lines.append(sorted_y[new_line_indices[-1]:])
         sorted_lines = [sorted(line, key=lambda b: b[0] + b[2]) for line in lines]
+        print(sorted_lines)
         return sorted_lines
 
     def _is_skip_box(self, box0, box1, box2, threshold=15):

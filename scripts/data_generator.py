@@ -149,7 +149,7 @@ def generate_cropped_training_data(
                     )  # (x, y) is the top left corner of the text to be drawn
 
                     image = np.asarray(image)
-                    lines = ocr_engine.segment_characters(image)
+                    lines = ocr_engine.segment_characters(image, is_generated_text=True)
 
                     count = 0
                     # for line in lines:
@@ -176,8 +176,8 @@ def generate_cropped_training_data(
                             file_path = os.path.join(save_folder, f"{prefix}_cropped_{index}.jpg")
                             kernel = np.ones((3, 3), np.uint8)
                             char = cv2.dilate(char, kernel, iterations=1)
-                            cv2.imshow("dilated", char)
-                            cv2.waitKey(0)
+                            # cv2.imshow("dilated", char)
+                            # cv2.waitKey(0)
                             cv2.imwrite(file_path, char)
                             count += 1
 
