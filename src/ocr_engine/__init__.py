@@ -117,8 +117,6 @@ class OCREngineBase:
 
     def filter_characters(self, image):
         """Returns all rectangles found in image."""
-        image = self.segment_characters_from_camera(image)
-
         # Filter out invalid rectangles
         contours, hierarchy = cv2.findContours(image.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         rectangles = []
@@ -317,11 +315,11 @@ class OCREngineBase:
         # cv2.waitKey(0)
 
         scale = min(Constants.IMAGE_SIZE / max(char.shape), 1)
-        # char = cv2.resize(char, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
         char = cv2.resize(char, None, fx=scale, fy=scale)
         l_r = (math.floor((Constants.IMAGE_SIZE - char.shape[1])/2), (math.ceil((Constants.IMAGE_SIZE - char.shape[1])/2)))
         t_b = (math.floor((Constants.IMAGE_SIZE - char.shape[0])/2), (math.ceil((Constants.IMAGE_SIZE - char.shape[0])/2)))
-        char = np.pad(char, (t_b, l_r), mode="constant", constant_values=0)
+        char = np.pad(char, (t_b, l_r, (0, 0)), mode="constant", constant_values=0)
+        char = cv2.cvtColor(char, cv2.COLOR_BGR2GRAY)
         # print(f"Shape after resizing: {char.shape}")
         # cv2.imshow("resized", char)
         # cv2.waitKey(0)
